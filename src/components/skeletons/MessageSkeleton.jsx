@@ -1,23 +1,28 @@
+import React from 'react';
+
 const MessageSkeleton = () => {
-  // Create an array of 6 items for skeleton messages
-  const skeletonMessages = Array(6).fill(null);
+  const skeletonMessages = Array.from({ length: 6 }, (_, idx) => ({
+    id: idx,
+    isIncoming: idx % 2 === 0,
+    width: `${Math.min(80 + (idx % 4) * 15, 100)}%`,
+    maxWidth: idx % 3 === 0 ? '280px' : '220px',
+  }));
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      {skeletonMessages.map((_, idx) => (
-        <div key={idx} className={`chat ${idx % 2 === 0 ? "chat-start" : "chat-end"}`}>
+    <div className="flex-1 overflow-y-auto p-2 md:p-4 space-y-3 md:space-y-4">
+      {skeletonMessages.map(msg => (
+        <div
+          key={msg.id}
+          className={`chat ${msg.isIncoming ? 'chat-start' : 'chat-end'} animate-pulse`}
+        >
           <div className="chat-image avatar">
-            <div className="size-10 rounded-full">
-              <div className="skeleton w-full h-full rounded-full" />
-            </div>
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-200/80" />
           </div>
-
-          <div className="chat-header mb-1">
-            <div className="skeleton h-4 w-16" />
-          </div>
-
           <div className="chat-bubble bg-transparent p-0">
-            <div className="skeleton h-16 w-[200px]" />
+            <div
+              className="rounded-lg bg-gray-200/80"
+              style={{ width: msg.width, maxWidth: msg.maxWidth, height: '3.5rem' }}
+            />
           </div>
         </div>
       ))}

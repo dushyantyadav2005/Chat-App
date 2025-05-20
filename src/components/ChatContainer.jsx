@@ -1,68 +1,93 @@
-import React, { useEffect } from 'react'
-import { useChatStore } from '../store/useChatStore'
-import MessageSkeleton from './skeletons/MessageSkeleton';
+import React, { useEffect, useRef } from 'react';
+import { useChatStore } from '../store/useChatStore';
+import { useAuthStore } from '../store/useAuthStore';
 import ChatHeader from './ChatHeader';
 import MessageInput from './MessageInput';
-import { useAuthStore } from '../store/useAuthStore';
-import { formatMessageTime } from "../lib/utlis";
-
+import MessageSkeleton from './skeletons/MessageSkeleton';
+import { formatMessageTime } from '../lib/utlis';
 
 function ChatContainer() {
-  const {message,getMessages,isMessagesLoading,selectedUser}=useChatStore();
-  const {authUser}=useAuthStore();
+  const { message, getMessages, isMessagesLoading, selectedUser } = useChatStore();
+  const { authUser } = useAuthStore();
+  const endRef = useRef(null);
 
-  
-  useEffect(()=>{
-    getMessages(selectedUser._id)
-  },[selectedUser._id,getMessages])
-  
-  if(isMessagesLoading) return (
-   <div className='flex-1 flex flex-col overflow-auto'>
-    <ChatHeader/>
+  useEffect(() => {
+    if (selectedUser?._id) {
+      getMessages(selectedUser._id);
+    }
+  }, [selectedUser?._id, getMessages]);
 
-   <MessageSkeleton/>
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [message]);
 
-    <MessageInput/>
+  if (isMessagesLoading) {
+    return (
+      <div className="h-full flex flex-col pt-16"> {/* Added padding for main header */}
+        <ChatHeader />
+        <MessageSkeleton />
+        <div className="sticky bottom-0 bg-base-100 border-t border-base-300">
+          <MessageInput />
+        </div>
+      </div>
+    );
+  }
 
-   </div>
-  )
   return (
-   <div className='flex-1 flex flex-col overflow-auto'>
-    <ChatHeader/>
+    <div className="h-full flex flex-col pt-16"> {/* Top padding for main header */}
+      {/* Chat Header positioned below main header */}
+      <div className="sticky top-16 z-40 bg-base-100 border-b border-base-300"> {/* Changed top position */}
+        <ChatHeader />
+      </div>
 
-   <div className='flex-1 overflow-y-auto p-4 space-y-4'>
-    {message.map((mess) => (
-  <div key={mess._id}
-  className={`chat ${mess.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-  >
-    <div className='chat-image avatar'>
-    <div className="size-10 rounded-full border">
-        <img src={mess.senderId===authUser._id?authUser.profilePic||'/avatar.png':selectedUser.profilePic||"/avatar.png"} alt='profile pic'></img>
-    </div>
-    </div>
-    <div className='chat-header mb-1'>
-         <time className='text-xs opacity-50 ml-1'>
-          {formatMessageTime(mess.createdAt)}
-         </time>
-    </div>
-    <div className='chat-bubble flex flex-col'>
-        {mess.image && (
+      {/* Messages Container with adjusted padding */}
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-4 mt-12"> {/* Added margin-top */}
+        {message.map(m => (
+          <div
+            key={m._id}
+            className={`chat ${m.senderId === authUser._id ? 'chat-end' : 'chat-start'}`}
+          >
+            <div className="chat-image avatar">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border overflow-hidden">
                 <img
-                  src={mess.image}
+                  src={
+                    m.senderId === authUser._id
+                      ? authUser.profilePic || '/avatar.png'
+                      : selectedUser.profilePic || '/avatar.png'
+                  }
+                  alt="profile"
+                  className="object-cover w-full h-full"
+                />
+              </div>
+            </div>
+
+            <div className="chat-header mb-1">
+              <time className="text-[10px] sm:text-xs text-gray-500 ml-1">
+                {formatMessageTime(m.createdAt)}
+              </time>
+            </div>
+
+            <div className="chat-bubble flex flex-col max-w-[80%] sm:max-w-[70%] md:max-w-[60%] lg:max-w-[50%]">
+              {m.image && (
+                <img
+                  src={m.image}
                   alt="Attachment"
-                  className="sm:max-w-[200px] rounded-md mb-2"
+                  className="w-32 sm:w-40 md:w-48 lg:w-64 rounded-md mb-2 object-cover"
                 />
               )}
-              {mess.text && <p>{mess.text}</p>}
-    </div>
-    </div>
-       ))}
-   </div>
+              {m.text && <p className="break-words text-sm sm:text-base">{m.text}</p>}
+            </div>
+          </div>
+        ))}
+        <div ref={endRef} />
+      </div>
 
-    <MessageInput/>
-
-   </div>
-  )
+      {/* Sticky Input Container */}
+      <div className="sticky bottom-0 bg-base-100 border-t border-base-300">
+        <MessageInput />
+      </div>
+    </div>
+  );
 }
 
-export default ChatContainer
+export default ChatContainer;
