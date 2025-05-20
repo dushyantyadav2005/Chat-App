@@ -51,6 +51,7 @@ export const login=async(req,res)=>{
     const {email,password}=req.body
     try{
         if(!email||!password){
+            console.error("not complete data");
              return res.status(400).json({message:"not complete data"});
         }
           const user=await User.findOne({email});
